@@ -1,0 +1,4 @@
+notification:
+  slack:
+    webhook:
+      url: https://hooks.slack.com/services/[키 값]
