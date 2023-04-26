@@ -7,9 +7,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +22,9 @@ public class SlackService implements SlackApi {
     
     @Value("${notification.slack.webhook.url}")
     private String slackAlertWebhookUrl;
-    
+
+    private final HttpServletRequest httpRequest;
+
     @Override
     public String sendErrorForSlack(Exception exception) {
         Slack slack = Slack.getInstance();
@@ -32,7 +37,7 @@ public class SlackService implements SlackApi {
 
             String emoji = "\u2620";
             String errorTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-            String errorPath = request.getRequestURI().toString();
+            String errorPath = httpRequest.getRequestURI().toString();
             String exceptionName = exception.getClass().toString();
             String exceptionRoot = exception.getStackTrace()[0].toString();
             String message = String.format("%s [%s] - [My-Slack-Message]- [%s] - [%s] - [%s]", emoji, errorTime, errorPath, exceptionName, exceptionRoot);
@@ -45,4 +50,5 @@ public class SlackService implements SlackApi {
         }
         return null;
     }
+
 }
