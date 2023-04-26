@@ -16,25 +16,29 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class SlackService implements SlackApi {
+    
     @Value("${notification.slack.webhook.url}")
     private String slackAlertWebhookUrl;
-
-    private final ObjectMapper objectMapper;
-
+    
     @Override
     public String sendErrorForSlack(Exception exception) {
         Slack slack = Slack.getInstance();
         WebhookResponse response = null;
         try {
             ObjectMapper objectMapper = new ObjectMapper();
+            Map<String, String> slackMessage = new HashMap<>();
             StringWriter writer = new StringWriter();
             exception.printStackTrace(new PrintWriter(writer));
 
-            // TODO : 주석 처리 해둔 Map으로 아래와 같이 사용 가능~!
-//            Map<String, String> slackMessage = new HashMap<>();
-//            slackMessage.put("text", writer.toString());
-            SlackErrorMessage slackErrorMessage = new SlackErrorMessage(writer.toString());
-            response = slack.send(slackAlertWebhookUrl, objectMapper.writeValueAsString(slackErrorMessage));
+            String emoji = "\u2620";
+            String errorTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            String errorPath = request.getRequestURI().toString();
+            String exceptionName = exception.getClass().toString();
+            String exceptionRoot = exception.getStackTrace()[0].toString();
+            String message = String.format("%s [%s] - [My-Slack-Message]- [%s] - [%s] - [%s]", emoji, errorTime, errorPath, exceptionName, exceptionRoot);
+
+            slackMessage.put("text", message);
+            response = slack.send(slackAlertWebhookUrl, objectMapper.writeValueAsString(slackMessage));
             return "Hello Slack Alert Sent = " + response.getCode();
         } catch (IOException e) {
             // TODO : 예외 처리
